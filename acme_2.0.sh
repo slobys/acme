@@ -3,6 +3,17 @@
 # 确保脚本在遇到错误时退出
 set -e
 
+# 检查系统类型
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+elif command -v lsb_release >/dev/null 2>&1; then
+    OS=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
+else
+    echo "无法确定操作系统类型，请手动安装依赖项。"
+    exit 1
+fi
+
 # 提示用户输入域名和电子邮件地址
 read -p "请输入域名: " DOMAIN
 read -p "请输入电子邮件地址: " EMAIL
@@ -31,10 +42,25 @@ case $CA_OPTION in
         ;;
 esac
 
-# 更新系统并安装依赖项
-sudo apt update
-sudo apt upgrade -y
-sudo apt install -y curl socat
+# 安装依赖项并关闭防火墙
+case $OS in
+    ubuntu|debian)
+        sudo apt update
+        sudo apt upgrade -y
+        sudo apt install -y curl socat
+        sudo ufw disable
+        ;;
+    centos)
+        sudo yum update -y
+        sudo yum install -y curl socat
+        sudo systemctl stop firewalld
+        sudo systemctl disable firewalld
+        ;;
+    *)
+        echo "不支持的操作系统：$OS"
+        exit 1
+        ;;
+esac
 
 # 安装 acme.sh
 curl https://get.acme.sh | sh
@@ -60,3 +86,14 @@ sudo acme.sh --install-cert -d $DOMAIN \
 echo "SSL证书和私钥已生成:"
 echo "证书: /etc/ssl/certs/${DOMAIN}.crt"
 echo "私钥: /etc/ssl/private/${DOMAIN}.key"
+
+# 恢复防火墙（可选）
+case $OS in
+    ubuntu|debian)
+        sudo ufw enable
+        ;;
+    centos)
+        sudo systemctl start firewalld
+        sudo systemctl enable firewalld
+        ;;
+esac
