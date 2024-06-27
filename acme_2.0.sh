@@ -42,19 +42,29 @@ case $CA_OPTION in
         ;;
 esac
 
+# 提示用户是否关闭防火墙
+echo "是否关闭防火墙？"
+echo "1) 是"
+echo "2) 否"
+read -p "输入选项 (1 或 2): " FIREWALL_OPTION
+
 # 安装依赖项并关闭防火墙
 case $OS in
     ubuntu|debian)
         sudo apt update
         sudo apt upgrade -y
         sudo apt install -y curl socat
-        sudo ufw disable
+        if [ "$FIREWALL_OPTION" -eq 1 ]; then
+            sudo ufw disable
+        fi
         ;;
     centos)
         sudo yum update -y
         sudo yum install -y curl socat
-        sudo systemctl stop firewalld
-        sudo systemctl disable firewalld
+        if [ "$FIREWALL_OPTION" -eq 1 ]; then
+            sudo systemctl stop firewalld
+            sudo systemctl disable firewalld
+        fi
         ;;
     *)
         echo "不支持的操作系统：$OS"
@@ -88,12 +98,14 @@ echo "证书: /etc/ssl/certs/${DOMAIN}.crt"
 echo "私钥: /etc/ssl/private/${DOMAIN}.key"
 
 # 恢复防火墙（可选）
-case $OS in
-    ubuntu|debian)
-        sudo ufw enable
-        ;;
-    centos)
-        sudo systemctl start firewalld
-        sudo systemctl enable firewalld
-        ;;
-esac
+if [ "$FIREWALL_OPTION" -eq 1 ]; then
+    case $OS in
+        ubuntu|debian)
+            sudo ufw enable
+            ;;
+        centos)
+            sudo systemctl start firewalld
+            sudo systemctl enable firewalld
+            ;;
+    esac
+fi
