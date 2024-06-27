@@ -48,7 +48,20 @@ echo "1) 是"
 echo "2) 否"
 read -p "输入选项 (1 或 2): " FIREWALL_OPTION
 
-# 安装依赖项并关闭防火墙
+# 如果用户选择不关闭防火墙，提示用户是否放行端口
+if [ "$FIREWALL_OPTION" -eq 2 ]; then
+    echo "是否放行特定端口？"
+    echo "1) 是"
+    echo "2) 否"
+    read -p "输入选项 (1 或 2): " PORT_OPTION
+
+    # 如果用户选择放行端口，提示用户输入端口号
+    if [ "$PORT_OPTION" -eq 1 ]; then
+        read -p "请输入要放行的端口号: " PORT
+    fi
+fi
+
+# 安装依赖项并关闭防火墙或放行端口
 case $OS in
     ubuntu|debian)
         sudo apt update
@@ -56,6 +69,8 @@ case $OS in
         sudo apt install -y curl socat
         if [ "$FIREWALL_OPTION" -eq 1 ]; then
             sudo ufw disable
+        elif [ "$PORT_OPTION" -eq 1 ]; then
+            sudo ufw allow $PORT
         fi
         ;;
     centos)
@@ -64,6 +79,9 @@ case $OS in
         if [ "$FIREWALL_OPTION" -eq 1 ]; then
             sudo systemctl stop firewalld
             sudo systemctl disable firewalld
+        elif [ "$PORT_OPTION" -eq 1 ]; then
+            sudo firewall-cmd --permanent --add-port=${PORT}/tcp
+            sudo firewall-cmd --reload
         fi
         ;;
     *)
