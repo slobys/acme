@@ -6,8 +6,6 @@
 
 `SSL Certificates` creater script
 
-based on [acme.sh](https://github.com/Neilpang/acme.sh)
-
 ## usage
 ```bash
 wget https://github.com/slobys/acme/releases/download/2.0/acme_2.0.sh
