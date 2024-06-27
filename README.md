@@ -8,7 +8,7 @@
 
 ## usage
 ```bash
-git clone https://github.com/slobys/acme.git /
+git clone https://github.com/slobys/acme.git /tmp/acme && sudo mv /tmp/acme/* /
 bash acme_2.0.sh
 ```
 
