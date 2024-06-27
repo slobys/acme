@@ -8,7 +8,7 @@
 
 ## usage
 ```bash
-wget https://github.com/slobys/acme/releases/download/2.0/acme_2.0.sh
+wget https://github.com/slobys/acme.git
 bash acme_2.0.sh
 ```
 
