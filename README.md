@@ -8,7 +8,7 @@
 
 ## usage
 ```bash
-git clone 
+git clone https://github.com/slobys/acme.git
 bash acme_2.0.sh
 ```
 
