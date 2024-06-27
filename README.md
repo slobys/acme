@@ -14,9 +14,3 @@ wget https://github.com/nanqinlang-script/acme/releases/download/1.6/acme_1.6.sh
 bash acme_1.6.sh
 ```
 
-## according
-Releases History  
-https://github.com/nanqinlang/acme/releases
-
-中文文档  
-https://github.com/nanqinlang-script/acme/wiki
