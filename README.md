@@ -10,7 +10,7 @@ based on [acme.sh](https://github.com/Neilpang/acme.sh)
 
 ## usage
 ```bash
-wget https://github.com/nanqinlang-script/acme/releases/download/1.6/acme_1.6.sh
+wget https://github.com/nanqinlang-script/acme/releases/download/2.0/acme_2.0.sh
 bash acme_1.6.sh
 ```
 
