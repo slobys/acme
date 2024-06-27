@@ -1,77 +1,62 @@
 #!/bin/bash
-Green_font="\033[32m" && Red_font="\033[31m" && Font_suffix="\033[0m"
-Info="${Green_font}[Info]${Font_suffix}"
-Error="${Red_font}[Error]${Font_suffix}"
-echo -e "${Green_font}
-#===========================================
-# Project: acme - SSL Certificates generator
-# Version: 2.0
-# Author: nanqinlang
-# Blog:   https://sometimesnaive.org
-# Github: https://github.com/nanqinlang
-#===========================================${Font_suffix}"
 
-check_root(){
-	[[ "`id -u`" != "0" ]] && echo -e "${Error} must be root user !" && exit 1
-}
+# 确保脚本在遇到错误时退出
+set -e
 
-directory(){
-	[[ ! -d /home/acme ]] && mkdir -p /home/acme
-	cd /home/acme
-}
+# 提示用户输入域名和电子邮件地址
+read -p "请输入域名: " DOMAIN
+read -p "请输入电子邮件地址: " EMAIL
 
-get_makesh(){
-	[[ ! -f make.sh ]] && wget https://raw.githubusercontent.com/nanqinlang-script/acme/master/make.sh && chmod +x make.sh
-	[[ ! -f make.sh ]] && echo -e "${Error} requirement download failed, please check !" && exit 1
-}
+# 显示选项菜单
+echo "请选择要使用的证书颁发机构 (CA):"
+echo "1) Let's Encrypt"
+echo "2) Buypass"
+echo "3) ZeroSSL"
+read -p "输入选项 (1, 2, or 3): " CA_OPTION
 
-get_domain(){
-	echo -e "${Info} input your domain:"
-	read -p "(defaultly cancel):" domain
-	[[ -z "${domain}" ]] && echo -e "${Error} no input domain, exiting..." && exit 1
-}
+# 根据用户选择设置CA参数
+case $CA_OPTION in
+    1)
+        CA_SERVER="letsencrypt"
+        ;;
+    2)
+        CA_SERVER="buypass"
+        ;;
+    3)
+        CA_SERVER="zerossl"
+        ;;
+    *)
+        echo "无效选项"
+        exit 1
+        ;;
+esac
 
-create(){
-	echo -e "${Info} select required type:\n1.rsa\n2.ecc"
-	read -p "(defaultly choose rsa):" type
-	if [[ -z "${type}" ]]; then
-		./make.sh --issue --dns -d ${domain}
-	elif [[ "${type}" = "1" ]]; then
-		./make.sh --issue --dns -d ${domain}
-	elif [[ "${type}" = "2" ]]; then
-		./make.sh --issue --dns -d ${domain} --keylength ec-256
-	else
-		echo -e "${Error} invalid input, exiting" && exit 1
-	fi
+# 更新系统并安装依赖项
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y curl socat
 
-	echo -e "${Info} now you should perform domain TXT record authorization"
-	read -p "then press 'enter' to continue"
-	if [[ "${type}" = "1" ]]; then
-		 ./make.sh --renew -d ${domain} && mv -f /root/.acme.sh/${domain} /home/${domain}_rsa
-	else ./make.sh --renew -d ${domain} --ecc && mv -f /root/.acme.sh/${domain}_ecc /home/${domain}_ecc
-	fi
-}
+# 安装 acme.sh
+curl https://get.acme.sh | sh
 
-exist(){
-	if [[ "${type}" = "1" ]]; then
-		if [[ -d /home/${domain}_rsa ]]; then
-			 echo -e "${Info} SSL certificate files are in /home/${domain}_rsa "
-		else echo -e "${Error} failed, please check !"
-		fi
-	else
-		if [[ -d /home/${domain}_ecc ]]; then
-			 echo -e "${Info} SSL certificate files are in /home/${domain}_ecc "
-		else echo -e "${Error} failed, please check !"
-		fi
-	fi
-}
+# 使 acme.sh 脚本可用
+export PATH="$HOME/.acme.sh:$PATH"
 
+# 添加执行权限
+chmod +x "$HOME/.acme.sh/acme.sh"
 
-check_root
-directory
-get_makesh
-get_domain
-create
-exist
-rm -rf /root/.acme.sh
-rm -rf /home/acme
+# 注册帐户（使用用户提供的电子邮件地址）
+acme.sh --register-account -m $EMAIL --server $CA_SERVER
+
+# 申请 SSL 证书（使用用户提供的域名）
+acme.sh --issue --standalone -d $DOMAIN --server $CA_SERVER
+
+# 安装 SSL 证书
+sudo acme.sh --install-cert -d $DOMAIN \
+        --key-file       /etc/ssl/private/${DOMAIN}.key \
+        --fullchain-file /etc/ssl/certs/${DOMAIN}.crt
+
+# 提示用户证书已生成
+echo "SSL证书和私钥已生成:"
+echo "证书: /etc/ssl/certs/${DOMAIN}.crt"
+echo "私钥: /etc/ssl/private/${DOMAIN}.key"
