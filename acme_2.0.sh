@@ -57,7 +57,7 @@ if [ "$FIREWALL_OPTION" -eq 2 ]; then
 
     # 如果用户选择放行端口，提示用户输入端口号
     if [ "$PORT_OPTION" -eq 1 ]; then
-        read -p "请输入要放行的端口号（多个端口用“,”隔开）: " PORT
+        read -p "请输入要放行的端口号: " PORT
     fi
 fi
 
@@ -66,7 +66,7 @@ case $OS in
     ubuntu|debian)
         sudo apt update
         sudo apt upgrade -y
-        sudo apt install -y curl socat
+        sudo apt install -y curl socat git
         if [ "$FIREWALL_OPTION" -eq 1 ]; then
             sudo ufw disable
         elif [ "$PORT_OPTION" -eq 1 ]; then
@@ -75,7 +75,7 @@ case $OS in
         ;;
     centos)
         sudo yum update -y
-        sudo yum install -y curl socat
+        sudo yum install -y curl socat git
         if [ "$FIREWALL_OPTION" -eq 1 ]; then
             sudo systemctl stop firewalld
             sudo systemctl disable firewalld
@@ -106,9 +106,22 @@ acme.sh --register-account -m $EMAIL --server $CA_SERVER
 acme.sh --issue --standalone -d $DOMAIN --server $CA_SERVER
 
 # 安装 SSL 证书
-sudo sudo ~/.acme.sh/acme.sh --installcert -d $DOMAIN --key-file /root/private.key --fullchain-file /root/cert.crt
+~/.acme.sh/acme.sh --installcert -d $DOMAIN \
+    --key-file       /root/${DOMAIN}.key \
+    --fullchain-file /root/${DOMAIN}.crt
 
 # 提示用户证书已生成
 echo "SSL证书和私钥已生成:"
 echo "证书: /root/${DOMAIN}.crt"
 echo "私钥: /root/${DOMAIN}.key"
+
+# 创建自动续期的脚本
+cat << EOF > /root/renew_cert.sh
+#!/bin/bash
+export PATH="\$HOME/.acme.sh:\$PATH"
+acme.sh --renew -d $DOMAIN --server $CA_SERVER
+EOF
+chmod +x /root/renew_cert.sh
+
+# 创建自动续期的 cron 任务
+(crontab -l 2>/dev/null; echo "0 0 * * * /root/renew_cert.sh > /dev/null") | crontab -
