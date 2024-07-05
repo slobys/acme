@@ -106,9 +106,7 @@ acme.sh --register-account -m $EMAIL --server $CA_SERVER
 acme.sh --issue --standalone -d $DOMAIN --server $CA_SERVER
 
 # 安装 SSL 证书
-sudo acme.sh --install-cert -d $DOMAIN \
-        --key-file       /root/${DOMAIN}.key \
-        --fullchain-file /root/${DOMAIN}.crt
+sudo sudo ~/.acme.sh/acme.sh --installcert -d $DOMAIN --key-file /root/private.key --fullchain-file /root/cert.crt
 
 # 提示用户证书已生成
 echo "SSL证书和私钥已生成:"
