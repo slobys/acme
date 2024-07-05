@@ -107,13 +107,13 @@ acme.sh --issue --standalone -d $DOMAIN --server $CA_SERVER
 
 # 安装 SSL 证书
 sudo acme.sh --install-cert -d $DOMAIN \
-        --key-file       /etc/ssl/private/${DOMAIN}.key \
-        --fullchain-file /etc/ssl/certs/${DOMAIN}.crt
+        --key-file       /root/${DOMAIN}.key \
+        --fullchain-file /root/${DOMAIN}.crt
 
 # 提示用户证书已生成
 echo "SSL证书和私钥已生成:"
-echo "证书: /etc/ssl/certs/${DOMAIN}.crt"
-echo "私钥: /etc/ssl/private/${DOMAIN}.key"
+echo "证书: /root/${DOMAIN}.crt"
+echo "私钥: /root/${DOMAIN}.key"
 
 # 恢复防火墙（可选）
 if [ "$FIREWALL_OPTION" -eq 1 ]; then
