@@ -112,16 +112,3 @@ sudo sudo ~/.acme.sh/acme.sh --installcert -d $DOMAIN --key-file /root/private.k
 echo "SSL证书和私钥已生成:"
 echo "证书: /root/${DOMAIN}.crt"
 echo "私钥: /root/${DOMAIN}.key"
-
-# 恢复防火墙（可选）
-if [ "$FIREWALL_OPTION" -eq 1 ]; then
-    case $OS in
-        ubuntu|debian)
-            sudo ufw enable
-            ;;
-        centos)
-            sudo systemctl start firewalld
-            sudo systemctl enable firewalld
-            ;;
-    esac
-fi
