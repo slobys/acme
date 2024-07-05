@@ -57,7 +57,7 @@ if [ "$FIREWALL_OPTION" -eq 2 ]; then
 
     # 如果用户选择放行端口，提示用户输入端口号
     if [ "$PORT_OPTION" -eq 1 ]; then
-        read -p "请输入要放行的端口号: " PORT
+        read -p "请输入要放行的端口号（多个端口用“,”隔开）: " PORT
     fi
 fi
 
